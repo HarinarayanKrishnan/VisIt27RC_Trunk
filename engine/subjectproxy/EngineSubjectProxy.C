@@ -36,47 +36,68 @@
 *
 *****************************************************************************/
 
-#ifndef _GETDB_PLUGIN_INFO_RPC_H_
-#define _GETDB_PLUGIN_INFO_RPC_H_
-#include <mdsrpc_exports.h>
+#include <iostream>
+#include <EngineProxy.h>
+#include <Engine.h>
+#include <EngineSubjectProxy.h>
+#include <VisItInit.h>
+#include <RuntimeSetting.h>
+#include <BufferConnection.h>
 
-#include <VisItRPC.h>
-#include <vector>
-#include <string>
-#include <DBPluginInfoAttributes.h>
-
-// ****************************************************************************
-// Class: GetDBPluginInfoRPC
-//
-// Purpose:
-//   This class encapsulates a call to get the DBPluginInfo for a database
-//   from a remote file system.
-//
-// Notes:      
-//
-// Programmer: Hank Childs
-// Creation:   May 23, 2005
-//
-// ****************************************************************************
-
-class MDSERVER_RPC_API GetDBPluginInfoRPC : public BlockingRPC
+struct PrivateData
 {
-public:
-    GetDBPluginInfoRPC();
-    virtual ~GetDBPluginInfoRPC();
-
-    virtual const std::string TypeName() const;
-
-    // Invokation method
-    const DBPluginInfoAttributes *operator()();
-
-    // Property selection methods
-    virtual void SelectAll();
-
-    void SetDBPluginAtts(DBPluginInfoAttributes* atts);
-private:
-    DBPluginInfoAttributes    dbPluginInfo;
+    EngineState* state;
+    EngineMethods* methods;
+    Engine* engine;
 };
 
+EngineSubjectProxy::EngineSubjectProxy()
+{
+    data = new PrivateData();
+    data->engine = Engine::Instance();
 
-#endif
+    /// share buffer connection between engine and proxy..
+    BufferConnection* conn = new BufferConnection();
+
+    data->state = new EngineState();
+    data->methods = new EngineMethods(data->state);
+    data->methods->SetLocalConnection(conn);
+    data->engine->SetUpViewerInterface(data->state, conn);
+    data->engine->SimpleInitializeCompute();
+}
+
+EngineSubjectProxy::~EngineSubjectProxy()
+{
+    delete data->state;
+    delete data->methods;
+    delete data->engine;
+    delete data;
+}
+
+void
+EngineSubjectProxy::LoadEngineProxy()
+{
+    ///ViewerEngineManager::Instance()
+//    EngineManager::ServerMap& smp = EngineManager::Instance()->GetServerMap();
+//    if(smp.count("localhost") > 0) return;
+
+//    EngineManager::ServerInfo* info = new EngineManager::ServerInfo();
+//    info->path = this->GetEngineMethods()->GetDirectory();
+//    info->arguments = stringVector();
+//    info->server = this;
+
+//    smp["localhost"] = info;
+}
+
+EngineState*
+EngineSubjectProxy::GetEngineState()
+{
+    return data->state;
+}
+
+EngineMethods*
+EngineSubjectProxy::GetEngineMethods()
+{
+    return data->methods;
+}
+

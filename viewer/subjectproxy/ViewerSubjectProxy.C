@@ -40,9 +40,10 @@
 #include <ViewerProxy.h>
 #include <ViewerSubject.h>
 #include <ViewerSubjectProxy.h>
+#include <MDServerSubjectProxy.h>
+#include <EngineSubjectProxy.h>
 #include <VisItInit.h>
 #include <RuntimeSetting.h>
-
 
 #include <ViewerState.h>
 #include <ViewerMethods.h>
@@ -51,7 +52,6 @@
 #include <PluginManagerAttributes.h>
 #include <PlotPluginInfo.h>
 #include <OperatorPluginInfo.h>
-
 
 #include <ClientInformation.h>
 #include <ClientMethod.h>
@@ -70,13 +70,16 @@
 #include <Xfer.h>
 #include <InitVTK.h>
 #include <InitVTKRendering.h>
+#include <SyncAttributes.h>
+#include <ViewerFileServer.h>
+#include <ViewerEngineManager.h>
 
 #ifndef _WIN32
 #include <unistd.h> // for usleep
 #endif
 
-
 #undef Always
+
 #include <QtVisWindow.h>
 #include <ViewerWindow.h>
 #include <ViewerWindowManager.h>
@@ -84,11 +87,29 @@
 #include <QMenu>
 #include <ViewerToolbar.h>
 #include <QMainWindow>
+#include <vtkQtRenderWindow.h>
+#include <QCloseEvent>
+#include <QList>
 
-std::map<int,vtkQtRenderWindow*> ViewerSubjectProxy::viswindows;
+class TestConnection : public Connection
+{
+public:
+    TestConnection(){}
+    virtual ~TestConnection(){}
+    virtual int  Fill(){ return 0; }
+    virtual void Flush(){}
+    virtual long Size(){ return 0; }
+    virtual void Write(unsigned char value) {}
+    virtual void Read(unsigned char *address) {}
+    virtual void Append(const unsigned char *buf, int count){}
+    virtual long DirectRead(unsigned char *buf, long len){ return 0; }
+    virtual long DirectWrite(const unsigned char *buf, long len) {return 0;}
+    virtual int GetDescriptor(){ return -1; }
+    virtual bool NeedsRead(bool = false) const;
+};
 
-bool 
-ViewerSubjectProxy::TestConnection::NeedsRead(bool blocking) const
+bool
+TestConnection::NeedsRead(bool) const
 {
     //HACK: does this logic because visitModule calls NeedsRead once
     //before entering loop and expects to get false..
@@ -105,6 +126,37 @@ ViewerSubjectProxy::TestConnection::NeedsRead(bool blocking) const
     }
     return true;
 }
+
+
+std::map<int,vtkQtRenderWindow*> viswindows;
+
+class NonClosableQtRenderWindow : public vtkQtRenderWindow
+{
+public:
+    virtual ~NonClosableQtRenderWindow();
+    virtual void closeEvent(QCloseEvent * event);
+};
+
+NonClosableQtRenderWindow::~NonClosableQtRenderWindow()
+{
+
+}
+
+void
+NonClosableQtRenderWindow::closeEvent(QCloseEvent * event)
+{
+
+    if(viswindows.size() > 1)
+    {
+        vtkQtRenderWindow::closeEvent(event);
+    }
+    else
+    {
+        std::cerr << "Not allowed to close the last Viewer window" << std::endl;
+        event->ignore();
+    }
+}
+
 
 void ViewerSubjectProxy::InitializePlugins(PluginManager::PluginCategory t, const char *pluginDir)
 {
@@ -277,7 +329,7 @@ vtkQtRenderWindow* ViewerSubjectProxy::GetRenderWindow(int i)
 
 vtkQtRenderWindow* ViewerSubjectProxy::renderWindow(void* data)
 {
-    vtkQtRenderWindow* win = new ViewerSubjectProxy::NonClosableQtRenderWindow();
+    vtkQtRenderWindow* win = new NonClosableQtRenderWindow();
 
     //add signal to let us know when windowDeleted.
     win->connect(win,SIGNAL(destroyed(QObject*)),(QObject*)data,SLOT(windowDeleted(QObject*)));
@@ -524,3 +576,78 @@ ViewerSubjectProxy::eventFilter(QObject *o, QEvent *e)
     return false;
 }
 
+
+/// not used in visitmodule anymore, but still there just in case.
+void
+ViewerSubjectProxy::ProcessInput()
+{
+    static int mx = 1000;
+
+    SyncAttributes* a = GetViewerState()->GetSyncAttributes();
+    if(a->GetSyncTag() < 0) //a sync tag of -1 means that the cli is waiting..
+    {
+        mx++;
+        a->SetSyncTag(mx);
+        a->Notify();
+    }
+}
+
+Connection *
+ViewerSubjectProxy::GetReadConnection() const
+{
+    return testconn;
+}
+
+Connection *
+ViewerSubjectProxy::GetWriteConnection() const
+{
+    return testconn;
+}
+
+void
+ViewerSubjectProxy::LoadLocalMDServer()
+{
+    MDServerSubjectProxy* proxy = new MDServerSubjectProxy();
+    proxy->LoadMDServerProxy();
+}
+
+
+std::string
+GetApparentHostName()
+{
+    std::string apparentHostName = "localhost";
+
+    // We're using the loopback device; try harder
+    char localHostStr[256];
+    if (gethostname(localHostStr, 256) != -1)
+    {
+        struct hostent *localHostEnt = gethostbyname(localHostStr);
+        if (localHostEnt)
+        {
+            apparentHostName = std::string(localHostEnt->h_name);
+        }
+        else
+        {
+            localHostEnt = gethostbyname("localhost");
+            if(localHostEnt != NULL)
+                apparentHostName = std::string(localHostEnt->h_name);
+            else
+                apparentHostName = std::string(localHostStr);
+        }
+    }
+
+    if(apparentHostName.length() == 0)
+        return "localhost";
+
+    return apparentHostName;
+}
+
+void
+ViewerSubjectProxy::LoadLocalEngine()
+{
+    EngineSubjectProxy* proxy = new EngineSubjectProxy();
+    ViewerEngineManager* manager = ViewerEngineManager::Instance();
+
+    if(manager)
+        manager->SetInternalEngineProxy(GetApparentHostName(),proxy);
+}

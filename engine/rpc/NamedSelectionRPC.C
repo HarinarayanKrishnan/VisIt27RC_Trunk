@@ -359,3 +359,10 @@ NamedSelectionRPC::SetSelectionProperties(const SelectionProperties &p)
     properties = p;
     Select(4, (void*)&properties);
 }
+
+void
+NamedSelectionRPC::SetSelectionSummary(SelectionSummary &s)
+{
+    summary.CopyAttributes(&s);
+    SendReply(&summary);
+}

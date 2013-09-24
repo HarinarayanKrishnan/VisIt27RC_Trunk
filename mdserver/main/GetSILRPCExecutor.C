@@ -137,7 +137,8 @@ GetSILRPCExecutor::Update(Subject *s)
         parent->GetCurrentSIL()->Print(debug2);
 #endif
         int t0 = visitTimer->StartTimer();
-        rpc->SendReply(parent->GetCurrentSIL());
+        rpc->SetSILAttributes(parent->GetCurrentSIL());
+        //rpc->SendReply(parent->GetCurrentSIL());
         visitTimer->StopTimer(t0, "Sending SIL");
     }
     CATCH2(DatabaseException, dbe)

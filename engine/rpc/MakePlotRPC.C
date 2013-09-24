@@ -463,10 +463,9 @@ MakePlotRPC::operator()(const std::string &plotName,
         return -1;
     }
 
-    if (a)
-        Select(0, (void*)a);
-    Select(1, (void*)&extents);
-    Select(2, (void*)&winID);
+    SetAtts(a->NewInstance(true));
+    SetDataExtents(extents);
+    SetWindowID(winID);
 
     Execute();
 
@@ -523,4 +522,13 @@ void
 MakePlotRPC::NetworkID::SelectAll()
 {
     Select(0, (void *)&id);
+}
+
+///
+
+void
+MakePlotRPC::SetNetworkID(int i)
+{
+    networkID.id = i;
+    SendReply(&networkID);
 }

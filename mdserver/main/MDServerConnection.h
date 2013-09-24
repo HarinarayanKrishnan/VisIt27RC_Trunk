@@ -238,6 +238,7 @@ class MDServerConnection
     const VirtualFileInformationMap::iterator
         GetVirtualFileDefinition(const std::string &file);
 public:
+    MDServerConnection(MDServerApplication *a, MDServerState* state); //internal
     MDServerConnection(MDServerApplication *, int *argc, char **argv[]);
     ~MDServerConnection();
 

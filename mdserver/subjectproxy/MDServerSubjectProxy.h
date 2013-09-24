@@ -36,47 +36,41 @@
 *
 *****************************************************************************/
 
-#ifndef _GETDB_PLUGIN_INFO_RPC_H_
-#define _GETDB_PLUGIN_INFO_RPC_H_
-#include <mdsrpc_exports.h>
+#ifndef MDSERVERSUBJECTPROXY_H
+#define MDSERVERSUBJECTPROXY_H
 
-#include <VisItRPC.h>
-#include <vector>
-#include <string>
-#include <DBPluginInfoAttributes.h>
+#include <mdserversubjectproxy_exports.h>
+#include <MDServerProxy.h>
+
+struct PrivateData;
 
 // ****************************************************************************
-// Class: GetDBPluginInfoRPC
+// Class: MDServerSubjectProxy
 //
 // Purpose:
-//   This class encapsulates a call to get the DBPluginInfo for a database
-//   from a remote file system.
+//   Control MDServerSubject via a MDServerProxy style interface.
 //
 // Notes:      
 //
-// Programmer: Hank Childs
-// Creation:   May 23, 2005
+// Programmer: Hari Krishnan
+// Creation:   Wed May 16 09:34:25 PDT 2012
+//
+// Modifications:
 //
 // ****************************************************************************
 
-class MDSERVER_RPC_API GetDBPluginInfoRPC : public BlockingRPC
+class MDSERVER_SUBJECT_PROXY_API MDServerSubjectProxy : public MDServerProxy
 {
 public:
-    GetDBPluginInfoRPC();
-    virtual ~GetDBPluginInfoRPC();
+    MDServerSubjectProxy();
+    virtual ~MDServerSubjectProxy();
 
-    virtual const std::string TypeName() const;
+    virtual MDServerMethods    *GetMDServerMethods();
+    virtual MDServerState      *GetMDServerState();
 
-    // Invokation method
-    const DBPluginInfoAttributes *operator()();
-
-    // Property selection methods
-    virtual void SelectAll();
-
-    void SetDBPluginAtts(DBPluginInfoAttributes* atts);
+    void LoadMDServerProxy();
 private:
-    DBPluginInfoAttributes    dbPluginInfo;
+    PrivateData* data;
 };
-
 
 #endif

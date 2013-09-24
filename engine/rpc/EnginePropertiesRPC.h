@@ -69,6 +69,7 @@ public:
     // Property getting methods
     EngineProperties GetReturnAtts() { return returnAtts; } ; 
 
+    void SetEngineProperties(EngineProperties atts);
     EngineProperties returnAtts; 
 };
 

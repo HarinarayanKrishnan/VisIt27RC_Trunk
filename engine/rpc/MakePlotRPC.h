@@ -151,6 +151,8 @@ class ENGINE_RPC_API MakePlotRPC : public BlockingRPC
 
     virtual void SetXfer(Xfer *x);
 
+    void SetNetworkID(int i);
+
   private:
     AttributeSubject *atts;
     std::vector<double> dataExtents;

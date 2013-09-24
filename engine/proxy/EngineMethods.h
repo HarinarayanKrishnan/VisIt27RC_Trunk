@@ -173,6 +173,7 @@ public:
 
     void                    SetParentProcess(ParentProcess* _engineP) { engineP = _engineP; }
     void                    SetRemoteProcess(RemoteProcess* _component) { component = _component; }
+    void                    SetLocalConnection(Connection* c) { conn = c; }
     void                    SetNumNodes(int _numNodes) { numNodes = _numNodes; }
 
 protected:
@@ -190,6 +191,7 @@ private:
     // For indicating status.
     ParentProcess           *engineP;
     RemoteProcess           *component;
+    Connection              *conn;
     EngineState* state;
 };
 #endif

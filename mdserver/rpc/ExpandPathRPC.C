@@ -254,3 +254,11 @@ ExpandPathRPC::PathName::TypeName() const
 {
     return "ExpandPathRPC::PathName";
 }
+
+///
+void
+ExpandPathRPC::ExpandPath(const std::string &p)
+{
+    path.name = p;
+    SendReply(&path);
+}

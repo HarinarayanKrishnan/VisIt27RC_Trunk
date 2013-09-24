@@ -541,3 +541,12 @@ GetMetaDataRPC::GetCreateVectorMagnitudeExpressions() const
 {
     return createVectorMagnitudeExpressions;
 }
+
+
+///setting metadata
+void
+GetMetaDataRPC::SetMetaData(avtDatabaseMetaData *meta)
+{
+    metaData.CopyAttributes(meta);
+    SendReply(meta);
+}

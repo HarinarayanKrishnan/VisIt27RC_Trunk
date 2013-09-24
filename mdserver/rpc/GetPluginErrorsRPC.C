@@ -211,3 +211,11 @@ GetPluginErrorsRPC::PluginErrors::TypeName() const
 {
     return "GetPluginErrorsRPC::PluginErrors";
 }
+
+///
+void
+GetPluginErrorsRPC::SetPluginError(const std::string &e)
+{
+    errors.errorString = e;
+    SendReply(&errors);
+}

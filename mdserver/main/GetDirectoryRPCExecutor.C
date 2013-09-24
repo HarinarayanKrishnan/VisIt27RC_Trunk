@@ -110,7 +110,8 @@ GetDirectoryRPCExecutor::Update(Subject *s)
 #ifdef DEBUG
      debug2 << "GetDirectoryRPCExecutor::Update\n"; debug2.flush();
 #endif
-     GetDirectoryRPC::DirectoryName dir;
-     dir.name = parent->GetCurrentWorkingDirectory();
-     rpc->SendReply(&dir);
+//     GetDirectoryRPC::DirectoryName dir;
+//     dir.name = parent->GetCurrentWorkingDirectory();
+//     rpc->SendReply(&dir);
+     rpc->SetDirectory(parent->GetCurrentWorkingDirectory());
 }

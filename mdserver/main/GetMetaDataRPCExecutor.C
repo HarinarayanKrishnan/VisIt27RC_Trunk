@@ -168,7 +168,8 @@ GetMetaDataRPCExecutor::Update(Subject *s)
             parent->GetCurrentMetaData()->Print(DebugStream::Stream5());
 
         int t0 = visitTimer->StartTimer();
-        rpc->SendReply(parent->GetCurrentMetaData());
+        //rpc->SendReply(parent->GetCurrentMetaData());
+        rpc->SetMetaData(parent->GetCurrentMetaData());
         visitTimer->StopTimer(t0, "Sending MD");
     }
     CATCH2(DatabaseException, dbe)

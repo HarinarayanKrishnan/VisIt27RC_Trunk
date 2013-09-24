@@ -84,6 +84,9 @@ public:
     // Invokation method
     std::string operator()();
 
+    // Set Directory..
+    void SetDirectory(const std::string &name);
+
     // Property selection methods
     virtual void SelectAll();
 

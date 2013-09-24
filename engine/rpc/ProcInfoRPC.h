@@ -69,6 +69,7 @@ public:
     // Property getting methods
     ProcessAttributes GetReturnAtts() { return returnAtts; } ; 
 
+    void SetProcessAttributes(ProcessAttributes* atts);
     ProcessAttributes returnAtts; 
 };
 

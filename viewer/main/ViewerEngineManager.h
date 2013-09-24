@@ -338,6 +338,8 @@ class VIEWER_API ViewerEngineManager : public ViewerServerManager,
 
     static ViewerEngineManager *Instance();
 
+    void SetInternalEngineProxy(const std::string& hostname, EngineProxy* e);
+
     bool CreateEngine(const EngineKey &ek,
                       const std::vector<std::string> &arguments,
                       bool  skipChooser=false,
@@ -482,7 +484,7 @@ class VIEWER_API ViewerEngineManager : public ViewerServerManager,
 
     bool                       executing;
     bool                       inLaunch;
-    int                        nEngines;
+    //int                        nEngines;
     EngineMap                  engines;
 
     std::map<EngineKey,stringVector>  restartArguments;

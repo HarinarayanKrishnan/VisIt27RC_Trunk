@@ -121,7 +121,7 @@ BufferConnection::DirectRead(unsigned char *buf, long len)
 
     if(buffer.size() > 0 && buf != 0)
     {
-        for(int i = 0; i < retval && i < len; ++i)
+        for(int i = 0; i < len; ++i) //i < retval && i < len
         {
             buf[i] = buffer.front();
             buffer.pop_front();

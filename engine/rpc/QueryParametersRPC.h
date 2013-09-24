@@ -82,6 +82,8 @@ public:
     // Property getting methods
     const std::string &GetQueryName() const {return queryName; };
 
+    void SetMapNodeString(const std::string &str);
+
 private:
     std::string queryName;
     MapNodeString mapNodeString;

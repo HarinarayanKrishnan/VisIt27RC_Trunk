@@ -108,7 +108,8 @@ ExpandPathRPCExecutor::Update(Subject *s)
            << rpc->GetPath().c_str() << "\n"; debug2.flush();
 #endif
     // Either send a successful reply or send an error.
-    ExpandPathRPC::PathName path;
-    path.name = parent->ExpandPath(rpc->GetPath());
-    rpc->SendReply(&path);
+//    ExpandPathRPC::PathName path;
+//    path.name = parent->ExpandPath(rpc->GetPath());
+//    rpc->SendReply(&path);
+    rpc->ExpandPath(parent->ExpandPath(rpc->GetPath()));
 }

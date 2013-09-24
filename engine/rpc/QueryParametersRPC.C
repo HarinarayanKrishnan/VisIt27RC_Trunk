@@ -169,4 +169,9 @@ QueryParametersRPC::MapNodeString::SelectAll()
     Select(0, (void*)&s);
 }
 
-
+void
+QueryParametersRPC::SetMapNodeString(const std::string &str)
+{
+    mapNodeString.s = str;
+    SendReply(&mapNodeString);
+}

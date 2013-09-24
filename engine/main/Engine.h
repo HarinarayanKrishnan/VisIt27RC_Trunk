@@ -243,7 +243,9 @@ class ENGINE_MAIN_API Engine
     void            Initialize(int *argc, char **argv[], bool sigs);
     bool            ConnectViewer(int *argc, char **argv[]);
     void            SetUpViewerInterface(int *argc, char **argv[]);
+    void            SetUpViewerInterface(EngineState* state, Connection* conn);
     void            InitializeCompute();
+    void            SimpleInitializeCompute();
     void            Finalize(void);
 
     // Needed for simulations

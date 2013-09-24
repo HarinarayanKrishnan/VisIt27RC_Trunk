@@ -54,3 +54,11 @@ ProcInfoRPC::ProcInfoRPC() : NonBlockingRPC("a", &returnAtts)
 {
   // nothing here;
 }
+
+void
+ProcInfoRPC::SetProcessAttributes(ProcessAttributes *atts)
+{
+    returnAtts.CopyAttributes(atts);
+    SendReply(&returnAtts);
+
+}

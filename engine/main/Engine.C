@@ -782,6 +782,58 @@ public:
 // Modifications:
 //   
 // ****************************************************************************
+void
+Engine::SimpleInitializeCompute()
+{
+    xfer = NULL;
+    simxfer = new Xfer;
+    netmgr = new NetworkManager;
+
+    if(pluginDir.size() > 0)
+    {
+        netmgr->GetPlotPluginManager()->SetPluginDir(pluginDir.c_str());
+        netmgr->GetOperatorPluginManager()->SetPluginDir(pluginDir.c_str());
+        netmgr->GetDatabasePluginManager()->SetPluginDir(pluginDir.c_str());
+    }
+    PluginManager::PluginCategory pCat = simulationPluginsEnabled ?
+        PluginManager::Simulation : PluginManager::Engine;
+
+    netmgr->GetPlotPluginManager()->Initialize(pCat, false);
+    netmgr->GetOperatorPluginManager()->Initialize(pCat, false);
+    netmgr->GetDatabasePluginManager()->Initialize(pCat, false);
+
+    //
+    // Load plugins
+    //
+    netmgr->GetPlotPluginManager()->LoadPluginsOnDemand();
+    netmgr->GetOperatorPluginManager()->LoadPluginsOnDemand();
+    netmgr->GetDatabasePluginManager()->LoadPluginsOnDemand();
+
+    lb = new LoadBalancer(1, 0);
+
+    netmgr->SetLoadBalancer(lb);
+
+    // Hook up metadata and SIL to be send back to the viewer.
+    // This is intended to only be used for simulations.
+    metaData = new avtDatabaseMetaData;
+    silAtts = new SILAttributes;
+    commandFromSim = new SimulationCommand;
+//    simxfer->Add(metaData);
+//    simxfer->Add(silAtts);
+//    simxfer->Add(commandFromSim);
+
+    //
+    // Initialize some callback functions.
+    //
+//    avtDataObjectSource::RegisterAbortCallback(Engine::EngineAbortCallback, NULL);
+//    avtDataObjectSource::RegisterProgressCallback(Engine::EngineUpdateProgressCallback,
+//                                                  NULL);
+//    LoadBalancer::RegisterAbortCallback(Engine::EngineAbortCallbackParallel, NULL);
+//    LoadBalancer::RegisterProgressCallback(Engine::EngineUpdateProgressCallback,
+//                                           NULL);
+//    avtOriginatingSource::RegisterInitializeProgressCallback(
+//                                       Engine::EngineInitializeProgressCallback, NULL);
+}
 
 void
 Engine::InitializeCompute()
@@ -1201,6 +1253,58 @@ Engine::SetUpViewerInterface(int *argc, char **argv[])
 
     avtDataObjectSource::RegisterAbortCallback(Engine::EngineAbortCallback, xfer);
     LoadBalancer::RegisterAbortCallback(Engine::EngineAbortCallbackParallel, xfer);
+}
+
+void
+Engine::SetUpViewerInterface(EngineState* state, Connection* conn)
+{
+    vtkConnection = conn;
+    // Create some RPC objects and make Xfer observe them.
+    quitRPC                         = new QuitRPC;
+    keepAliveRPC                    = new KeepAliveRPC;
+    enginestate                     = state;
+
+    // Create an object to implement the RPCs
+    rpcExecutors.push_back(new RPCExecutor<QuitRPC>(quitRPC));
+    rpcExecutors.push_back(new RPCExecutor<KeepAliveRPC>(keepAliveRPC));
+    rpcExecutors.push_back(new RPCExecutor<ReadRPC>(&enginestate->GetReadRPC()));
+    rpcExecutors.push_back(new RPCExecutor<ApplyOperatorRPC>(&enginestate->GetApplyOperatorRPC()));
+    rpcExecutors.push_back(new RPCExecutor<PrepareOperatorRPC>(&enginestate->GetApplyOperatorRPC().GetPrepareOperatorRPC()));
+    rpcExecutors.push_back(new RPCExecutor<MakePlotRPC>(&enginestate->GetMakePlotRPC()));
+    rpcExecutors.push_back(new RPCExecutor<PreparePlotRPC>(&enginestate->GetMakePlotRPC().GetPreparePlotRPC()));
+    rpcExecutors.push_back(new RPCExecutor<UseNetworkRPC>(&enginestate->GetUseNetworkRPC()));
+    rpcExecutors.push_back(new RPCExecutor<UpdatePlotAttsRPC>(&enginestate->GetUpdatePlotAttsRPC()));
+    rpcExecutors.push_back(new RPCExecutor<PrepareUpdatePlotAttsRPC>(&enginestate->GetUpdatePlotAttsRPC().GetPrepareUpdatePlotAttsRPC()));
+    rpcExecutors.push_back(new RPCExecutor<PickRPC>(&enginestate->GetPickRPC()));
+    rpcExecutors.push_back(new RPCExecutor<StartPickRPC>(&enginestate->GetStartPickRPC()));
+    rpcExecutors.push_back(new RPCExecutor<StartQueryRPC>(&enginestate->GetStartQueryRPC()));
+    rpcExecutors.push_back(new RPCExecutor<ExecuteRPC>(&enginestate->GetExecuteRPC()));
+    rpcExecutors.push_back(new RPCExecutor<ClearCacheRPC>(&enginestate->GetClearCacheRPC()));
+    rpcExecutors.push_back(new RPCExecutor<QueryRPC>(&enginestate->GetQueryRPC()));
+    rpcExecutors.push_back(new RPCExecutor<QueryParametersRPC>(&enginestate->GetQueryParametersRPC()));
+    rpcExecutors.push_back(new RPCExecutor<ReleaseDataRPC>(&enginestate->GetReleaseDataRPC()));
+    rpcExecutors.push_back(new RPCExecutor<OpenDatabaseRPC>(&enginestate->GetOpenDatabaseRPC()));
+    rpcExecutors.push_back(new RPCExecutor<DefineVirtualDatabaseRPC>(&enginestate->GetDefineVirtualDatabaseRPC()));
+    rpcExecutors.push_back(new RPCExecutor<RenderRPC>(&enginestate->GetRenderRPC()));
+    rpcExecutors.push_back(new RPCExecutor<SetWinAnnotAttsRPC>(&enginestate->GetSetWinAnnotAttsRPC()));
+    rpcExecutors.push_back(new RPCExecutor<CloneNetworkRPC>(&enginestate->GetCloneNetworkRPC()));
+    rpcExecutors.push_back(new RPCExecutor<ProcInfoRPC>(&enginestate->GetProcInfoRPC()));
+    rpcExecutors.push_back(new RPCExecutor<SimulationCommandRPC>(&enginestate->GetSimulationCommandRPC()));
+    rpcExecutors.push_back(new RPCExecutor<ExportDatabaseRPC>(&enginestate->GetExportDatabaseRPC()));
+    rpcExecutors.push_back(new RPCExecutor<ConstructDataBinningRPC>(&enginestate->GetConstructDataBinningRPC()));
+    rpcExecutors.push_back(new RPCExecutor<NamedSelectionRPC>(&enginestate->GetNamedSelectionRPC()));
+    rpcExecutors.push_back(new RPCExecutor<SetEFileOpenOptionsRPC>(&enginestate->GetSetEFileOpenOptionsRPC()));
+    rpcExecutors.push_back(new RPCExecutor<SetPrecisionTypeRPC>(&enginestate->GetSetPrecisionTypeRPC()));
+    rpcExecutors.push_back(new RPCExecutor<EnginePropertiesRPC>(&enginestate->GetEnginePropertiesRPC()));
+    rpcExecutors.push_back(new RPCExecutor<LaunchRPC>(&enginestate->GetLaunchRPC()));
+
+    // Hook up the expression list as an observed object.
+    Parser *p = new ExprParser(new avtExprNodeFactory());
+    ParsingExprList *l = new ParsingExprList(p);
+    //xfer->Add(l->GetList());
+
+    //avtDataObjectSource::RegisterAbortCallback(Engine::EngineAbortCallback, xfer);
+    //LoadBalancer::RegisterAbortCallback(Engine::EngineAbortCallbackParallel, xfer);
 }
 
 // ****************************************************************************
@@ -2356,6 +2460,7 @@ WriteByteStreamToSocket(NonBlockingRPC *rpc, Connection *vtkConnection,
 {
     int totalSize = do_str.GetTotalLength();
     rpc->SendReply(totalSize);
+
     int writeData = visitTimer->StartTimer();
     int nStrings = do_str.GetNStrings();
     if (DebugStream::Level5())
@@ -3087,7 +3192,10 @@ Engine::WriteData(NonBlockingRPC *rpc, avtDataObjectWriter_p &writer,
                         "Transferring Data Set",
                         rpc->GetMaxStageNum());
 
-        WriteByteStreamToSocket(rpc, vtkConnection, do_str);
+        if(vtkConnection)
+            WriteByteStreamToSocket(rpc, vtkConnection, do_str);
+        else
+            rpc->SendReply();
     }
     else
     {

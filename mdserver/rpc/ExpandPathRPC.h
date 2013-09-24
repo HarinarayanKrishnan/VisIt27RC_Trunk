@@ -84,7 +84,7 @@ public:
 
     // Property setting methods
     void SetPath(const std::string &p);
-
+    void ExpandPath(const std::string& path);
     // Property getting methods
     std::string GetPath() const { return path.name; };
 

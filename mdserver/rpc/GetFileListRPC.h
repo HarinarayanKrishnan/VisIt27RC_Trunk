@@ -124,6 +124,8 @@ public:
     bool               GetAutomaticFileGrouping() const;
     bool               GetSmartFileGrouping() const;
 
+
+    void SetFileList(FileList *f);
     virtual const std::string TypeName() const;
 private:
     FileList    fileList;

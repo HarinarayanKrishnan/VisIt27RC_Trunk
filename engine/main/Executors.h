@@ -494,8 +494,9 @@ RPCExecutor<MakePlotRPC>::Execute(MakePlotRPC *rpc)
     {
         netmgr->MakePlot(rpc->GetName().c_str(), rpc->GetID().c_str(), 
                          rpc->GetAtts(), rpc->GetDataExtents());
-        MakePlotRPC::NetworkID id(netmgr->EndNetwork(rpc->GetWindowID()));
-        rpc->SendReply(&id);
+//        MakePlotRPC::NetworkID id(netmgr->EndNetwork(rpc->GetWindowID()));
+//        rpc->SendReply(&id);
+          rpc->SetNetworkID(netmgr->EndNetwork(rpc->GetWindowID()));
     }
     CATCH2(VisItException, e)
     {
@@ -1112,7 +1113,8 @@ RPCExecutor<ProcInfoRPC>::Execute(ProcInfoRPC *rpc)
 
     TRY
     {
-        rpc->SendReply(engine->GetProcessAttributes());
+        //rpc->SendReply(engine->GetProcessAttributes());
+        rpc->SetProcessAttributes(engine->GetProcessAttributes());
     }
     CATCH2(VisItException, e)
     {
@@ -1140,8 +1142,9 @@ RPCExecutor<EnginePropertiesRPC>::Execute(EnginePropertiesRPC *rpc)
 
     TRY
     {
-        EngineProperties props(engine->GetEngineProperties());
-        rpc->SendReply(&props);
+        //EngineProperties props(engine->GetEngineProperties());
+        //rpc->SendReply(&props);
+        rpc->SetEngineProperties(engine->GetEngineProperties());
     }
     CATCH2(VisItException, e)
     {
@@ -1235,9 +1238,10 @@ RPCExecutor<QueryParametersRPC>::Execute(QueryParametersRPC *rpc)
 
     TRY
     {
-        QueryParametersRPC::MapNodeString s(
-            netmgr->GetQueryParameters(rpc->GetQueryName()));
-        rpc->SendReply(&s);
+//        QueryParametersRPC::MapNodeString s(
+//            netmgr->GetQueryParameters(rpc->GetQueryName()));
+//        rpc->SendReply(&s);
+        rpc->SetMapNodeString(netmgr->GetQueryParameters(rpc->GetQueryName()));
     }
     CATCH2(VisItException, e)
     {
@@ -1694,7 +1698,7 @@ RPCExecutor<NamedSelectionRPC>::Execute(NamedSelectionRPC *rpc)
             break;
         }
     debug2 << mName << "1" << endl;
-        rpc->SendReply(&summary);
+        rpc->SetSelectionSummary(summary); //rpc->SendReply(&summary);
     }
     CATCH2(VisItException, e)
     {

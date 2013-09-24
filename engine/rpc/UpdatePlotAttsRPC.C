@@ -318,8 +318,9 @@ UpdatePlotAttsRPC::operator()(const string &n, int ind,
 {
     prepareUpdatePlotAttsRPC(n);
     Select(0, (void *)&ind);
-    if (a)
-       Select(1, (void *)a);
+
+    if(a)
+        SetAtts(a->NewInstance(true));
 
     Execute();
 }

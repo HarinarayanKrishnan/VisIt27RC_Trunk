@@ -275,3 +275,10 @@ GetSILRPC::GetTreatAllDBsAsTimeVarying() const
 {
     return treatAllDBsAsTimeVarying;
 }
+
+void
+GetSILRPC::SetSILAttributes(SILAttributes *s)
+{
+    sil.CopyAttributes(s);
+    SendReply(&sil);
+}

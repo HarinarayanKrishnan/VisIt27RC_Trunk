@@ -81,6 +81,8 @@ public:
     virtual void SelectAll();
 
     virtual const std::string TypeName() const;
+
+    void SetPluginError(const std::string& e);
 private:
     PluginErrors errors;
 };

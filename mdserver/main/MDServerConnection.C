@@ -369,6 +369,116 @@ MDServerConnection::MDServerConnection(MDServerApplication *a, int *argc,
     visitTimer->StopTimer(total, connectStr + " and setup");
 }
 
+MDServerConnection::MDServerConnection(MDServerApplication *a, MDServerState* state)
+{
+    app = a;
+
+    /*
+        int total = visitTimer->StartTimer();
+        int timeid = visitTimer->StartTimer();
+        std::string connectStr("Connecting to client");
+
+        for (int i = 0; i < *argc; i++)
+        {
+            if (strcmp((*argv)[i], "-cycleregex") == 0)
+            {
+                avtDatabaseMetaData::SetCycleFromFilenameRegex((*argv)[i+1]);
+                i++;
+            }
+        }
+    */
+
+
+    // Initialize some static members.
+    if(!staticInit)
+    {
+        staticInit = true;
+        currentDatabase = NULL;
+        currentDatabaseHasInvariantMD = true;
+    }
+
+    // Initialize some pointer members.
+    currentMetaData = NULL;
+    currentSIL      = NULL;
+
+    // Set an internal flag to zero.
+    readFileListReturnValue = 0;
+
+    // Make the default filter be "*"
+    filterList.push_back("*");
+    extraSmartFileGrouping = true;
+
+    // Create a new ParentProcess and use it to connect to another
+    // program.
+    parent = new ParentProcess;
+
+    /*
+    TRY
+    {
+        parent->Connect(1, 1, argc, argv, true);
+        visitTimer->StopTimer(timeid, connectStr);
+    }
+    CATCH(IncompatibleVersionException)
+    {
+        visitTimer->StopTimer(timeid, connectStr);
+        debug1 << "The mdserver connected to a client that has a different "
+               << "version number than the mdserver itself."
+               << endl;
+        RETHROW;
+    }
+    CATCH(CouldNotConnectException)
+    {
+        visitTimer->StopTimer(timeid, connectStr);
+        debug1 << "The mdserver could not create a new connection." << endl;
+        RETHROW;
+    }
+    ENDTRY
+    */
+    // Create a new Xfer object that we'll use to talk to the other
+    // process.
+    xfer = new Xfer;
+    //xfer->SetInputConnection(parent->GetWriteConnection());
+    //xfer->SetOutputConnection(parent->GetReadConnection());
+
+    // Create the RPCs
+    quitRPC = new QuitRPC;
+    keepAliveRPC = new KeepAliveRPC;
+    mdstate = state;
+
+//    // Hook up the RPCs to the xfer object.
+    //xfer->Add(quitRPC);
+    //xfer->Add(keepAliveRPC);
+    //mdstate->SetupComponentRPCs(xfer);
+
+    // Create the RPC Observers.
+    quitExecutor = new QuitRPCExecutor(quitRPC);
+    keepAliveExecutor = new KeepAliveRPCExecutor(keepAliveRPC);
+    getDirectoryExecutor = new GetDirectoryRPCExecutor(this, &mdstate->GetGetDirectoryRPC());
+    changeDirectoryExecutor =
+        new ChangeDirectoryRPCExecutor(this, &mdstate->GetChangeDirectoryRPC());
+    getFileListExecutor = new GetFileListRPCExecutor(this, &mdstate->GetGetFileListRPC());
+    getMetaDataExecutor = new GetMetaDataRPCExecutor(this, &mdstate->GetGetMetaDataRPC());
+    getSILExecutor = new GetSILRPCExecutor(this, &mdstate->GetGetSILRPC());
+    connectExecutor = new ConnectRPCExecutor(&mdstate->GetConnectRPC());
+    createGroupListExecutor = new RPCExecutor<CreateGroupListRPC>(&mdstate->GetCreateGroupListRPC());
+    expandPathExecutor = new ExpandPathRPCExecutor(this, &mdstate->GetExpandPathRPC());
+    closeDatabaseExecutor = new CloseDatabaseRPCExecutor(this, &mdstate->GetCloseDatabaseRPC());
+    loadPluginsExecutor = new LoadPluginsRPCExecutor(this, &mdstate->GetLoadPluginsRPC());
+    getPluginErrorsRPCExecutor = new GetPluginErrorsRPCExecutor(this, &mdstate->GetGetPluginErrorsRPC());
+    getDBPluginInfoRPCExecutor = new GetDBPluginInfoRPCExecutor(this, &mdstate->GetGetDBPluginInfoRPC());
+    setMFileOpenOptionsRPCExecutor =
+            new SetMFileOpenOptionsRPCExecutor(this, &mdstate->GetSetMFileOpenOptionsRPC());
+
+    // Indicate that the file list is not valid since we have not read
+    // one yet.
+    validFileList = false;
+
+    // Get the current directory.
+    ReadCWD();
+
+    //visitTimer->StopTimer(total, connectStr + " and setup");
+}
+
 // ****************************************************************************
 // Method: MDServerConnection::~MDServerConnection
 //
@@ -1256,7 +1366,17 @@ MDServerConnection::ChangeDirectory(const std::string &dir)
     if(expandedDir != "My Computer")
     {
         // Try and change the current working directory.
-        if(_chdir(expandedDir.c_str()) != 0)
+//        if(_chdir(expandedDir.c_str()) != 0)
+//        {
+//            // Another return code was given. Assume a bad directory.
+//            return -1;
+//        }
+
+        /// check if directory exists instead of changing to directory..
+        DWORD dwAttrib = GetFileAttributes(expandedDir.c_str());
+
+        if(! (dwAttrib != INVALID_FILE_ATTRIBUTES &&
+               (dwAttrib & FILE_ATTRIBUTE_DIRECTORY)))
         {
             // Another return code was given. Assume a bad directory.
             return -1;
@@ -1264,8 +1384,17 @@ MDServerConnection::ChangeDirectory(const std::string &dir)
     }
 #else
     // Try and change the current working directory.
-    if(chdir(expandedDir.c_str()) != 0)
-    {
+//    if(chdir(expandedDir.c_str()) != 0)
+//    {
+//        // Another return code was given. Assume a bad directory.
+//        return -1;
+//    }
+
+    /// check if directory exists instead of changing to directory..
+    DIR* tdir = opendir(expandedDir.c_str());
+    if(tdir)
+        closedir(tdir);
+    else {
         // Another return code was given. Assume a bad directory.
         return -1;
     }
@@ -1333,6 +1462,7 @@ MDServerConnection::ReadCWD()
     // Note -- this is not called by the GetDirectoryRPC.  It is only
     // called once at the start of the program and once at every
     // directory change.
+    // Update: this function is only called once at start of program..
     char tmpcwd[1024];
 #if defined(_WIN32)
     _getcwd(tmpcwd,1023);

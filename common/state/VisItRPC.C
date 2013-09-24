@@ -209,7 +209,7 @@ VisItRPC::SetXfer(Xfer *x)
 void
 VisItRPC::RecvReply()
 {
-    if(xfer->GetInputConnection())
+    if(xfer && xfer->GetInputConnection())
     {
         // Try and read more data from the server.
         int amountRead = xfer->GetInputConnection()->Fill();

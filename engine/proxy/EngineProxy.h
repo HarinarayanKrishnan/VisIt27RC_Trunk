@@ -344,8 +344,8 @@ public:
     SILAttributes           *GetSimulationSILAtts();
     SimulationCommand       *GetCommandFromSimulation();
 
-    EngineState             *GetEngineState() { return state; }
-    EngineMethods           *GetEngineMethods() { return methods; }
+    virtual EngineState             *GetEngineState() { return state; }
+    virtual EngineMethods           *GetEngineMethods() { return methods; }
 
 protected:
     virtual void             SetupComponentRPCs();

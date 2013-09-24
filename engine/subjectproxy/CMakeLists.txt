@@ -36,69 +36,65 @@
 #
 # Modifications:
 #
-#*****************************************************************************
+#****************************************************************************/
 
-set(guiwrapper_include_paths
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${QT_QTCORE_INCLUDE_DIR}
-    ${QT_QTGUI_INCLUDE_DIR}
-    ${QT_QTOPENGL_INCLUDE_DIR}
-    ${QT_INCLUDE_DIR}
-    ${VISIT_SOURCE_DIR}/gui/
-    ${VISIT_SOURCE_DIR}/gui/main
-    ${VISIT_SOURCE_DIR}/mdserver/main
-    ${VISIT_SOURCE_DIR}/mdserver/rpc
-    ${VISIT_SOURCE_DIR}/mdserver/proxy
-    ${VISIT_SOURCE_DIR}/mdserver/subjectproxy
-    ${VISIT_SOURCE_DIR}/viewer/subjectproxy
-    ${VISIT_SOURCE_DIR}/viewer/main
-    ${VISIT_SOURCE_DIR}/viewer/proxy
-    ${VISIT_SOURCE_DIR}/viewer/rpc
-    ${VISIT_SOURCE_DIR}/vtkqt
-    ${VISIT_SOURCE_DIR}/common/utility
-    ${VISIT_SOURCE_DIR}/common/state
-    ${VISIT_SOURCE_DIR}/common/misc
-    ${VISIT_SOURCE_DIR}/common/comm
-    ${VISIT_SOURCE_DIR}/common/plugin
-    ${VISIT_SOURCE_DIR}/common/Exceptions/Pipeline
-    ${VISIT_SOURCE_DIR}/avt/DBAtts/MetaData/
-    ${VISIT_SOURCE_DIR}/avt/DBAtts/SIL
-    ${VTK_INSTALL_PREFIX}/include/vtk-5.0
-    ${VISIT_SOURCE_DIR}/avt/Math
-    ${VISIT_SOURCE_DIR}/avt/VisWindow/VisWindow
-    ${VISIT_SOURCE_DIR}/winutil
-    ${VISIT_SOURCE_DIR}/visit_vtk/full
-    ${VISIT_SOURCE_DIR}/avt/Plotter/vtk
-    ${VISIT_SOURCE_DIR}/avt/Plotter/
-    ${VTK_INCLUDE_DIRS}
+SET(ENGINELIB_SOURCES
+EngineSubjectProxy.C
 )
 
-include_directories(${guiwrapper_include_paths})
+# If the engine is static then we need some static symbol lookup functions
+#IF(VISIT_STATIC)
+#    SET(ENGINE_STATIC_SOURCES EngineStaticSymbolLocator.C)
+#ENDIF(VISIT_STATIC)
 
-LINK_DIRECTORIES(${LIBRARY_OUTPUT_DIRECTORY} ${QT_LIBRARY_DIR})
-set(guiwrapper_link_libs 
-    gui
-    viewer
-    viewersubjectproxy
-    ${QT_QTUITOOLS_LIBRARY}
-    ${QT_QTOPENGL_LIBRARY}
-    ${QT_QTGUI_LIBRARY}
-    ${QT_QTNETWORK_LIBRARY}
-    ${QT_QTXML_LIBRARY}
-    ${QT_QTCORE_LIBRARY}
+#IF (NOT WIN32)
+    # This keeps comm's exceptions visible when using -fvisibility=hidden
+#    ADD_DEFINITIONS(-DCOMM_EXPORTS)
+#ENDIF (NOT WIN32)
+
+INCLUDE_DIRECTORIES(
+${CMAKE_CURRENT_SOURCE_DIR}
+${VISIT_COMMON_INCLUDES}
+${VISIT_SOURCE_DIR}/engine/main
+${VISIT_SOURCE_DIR}/engine/rpc
+${VISIT_SOURCE_DIR}/engine/proxy
+${VISIT_SOURCE_DIR}/avt/DBAtts/MetaData
+${VISIT_SOURCE_DIR}/avt/DBAtts/SIL
+${VISIT_SOURCE_DIR}/avt/Database/Database
+${VISIT_SOURCE_DIR}/avt/Math
+${VISIT_SOURCE_DIR}/avt/Pipeline/Data
+${VISIT_SOURCE_DIR}/avt/Pipeline/Pipeline
+${VISIT_SOURCE_DIR}/avt/Pipeline/Sources
+${VISIT_SOURCE_DIR}/avt/Pipeline/Sinks
+${VISIT_SOURCE_DIR}/avt/VisWindow/VisWindow
+${VISIT_SOURCE_DIR}/visit_vtk/lightweight
 )
 
-set(guiwrapper_sources ${CMAKE_CURRENT_SOURCE_DIR}/guiwrapper.C)
+LINK_DIRECTORIES(
+${LIBRARY_OUTPUT_DIRECTORY}
+${MESA_LIBRARY_DIR}
+${VTK_LIBRARY_DIRS}
+${GLEW_LIBRARY_DIR}
+${ALL_THIRDPARTY_IO_LIBRARY_DIR})
 
-#
-# For dev build, we may need to link to mesa on Linux.
-##
-IF(MESA_FOUND)
-    set(guiwrapper_link_libs ${guiwrapper_link_libs} ${MESA_LIB})
-    LINK_DIRECTORIES(${LIBRARY_OUTPUT_DIRECTORY} ${MESA_LIBRARY_DIR})
-ENDIF(MESA_FOUND)
+add_definitions(-fvisibility=default)
+#*************************** The engine library ******************************
+ADD_LIBRARY(enginesubjectproxy ${ENGINELIB_SOURCES})
+#IF (WIN32)
+#    SET_TARGET_PROPERTIES(enginesubject PROPERTIES OUTPUT_NAME enginesubjectlib)
+#ENDIF (WIN32)
 
-add_library(guiwrapper SHARED ${guiwrapper_sources})
-target_link_libraries(guiwrapper ${guiwrapper_link_libs})
+TARGET_LINK_LIBRARIES(enginesubjectproxy
+visitcommon
+engine_ser
+enginerpc
+engineproxy
+avtview
+avtwriter_ser
+avtplotter_ser
+avtquery_ser
+avtviswindow_ser
+avtpipeline_ser
+)
 
-VISIT_INSTALL_TARGETS(guiwrapper)
+VISIT_INSTALL_TARGETS(enginesubjectproxy)

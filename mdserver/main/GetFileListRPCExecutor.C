@@ -137,7 +137,8 @@ GetFileListRPCExecutor::Update(Subject *s)
 
             debug4 << "FILELIST=" << files << endl;
             debug4.flush();
-            rpc->SendReply(&files);
+            //rpc->SendReply(&files);
+            rpc->SetFileList(&files);
         }
         else
         {
@@ -148,7 +149,8 @@ GetFileListRPCExecutor::Update(Subject *s)
                 debug4 << "FILELIST=" << *files << endl;
             debug4.flush();
 
-            rpc->SendReply(files);
+            //rpc->SendReply(files);
+            rpc->SetFileList(files);
         }
     }
     else

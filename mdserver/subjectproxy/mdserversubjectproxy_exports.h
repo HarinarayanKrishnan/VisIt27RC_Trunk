@@ -36,47 +36,29 @@
 *
 *****************************************************************************/
 
-#ifndef _GETDB_PLUGIN_INFO_RPC_H_
-#define _GETDB_PLUGIN_INFO_RPC_H_
-#include <mdsrpc_exports.h>
+#ifndef MDSERVER_SUBJECT_PROXY_EXPORTS_H
+#define MDSERVER_SUBJECT_PROXY_EXPORTS_H
 
-#include <VisItRPC.h>
-#include <vector>
-#include <string>
-#include <DBPluginInfoAttributes.h>
-
-// ****************************************************************************
-// Class: GetDBPluginInfoRPC
-//
-// Purpose:
-//   This class encapsulates a call to get the DBPluginInfo for a database
-//   from a remote file system.
-//
-// Notes:      
-//
-// Programmer: Hank Childs
-// Creation:   May 23, 2005
-//
-// ****************************************************************************
-
-class MDSERVER_RPC_API GetDBPluginInfoRPC : public BlockingRPC
-{
-public:
-    GetDBPluginInfoRPC();
-    virtual ~GetDBPluginInfoRPC();
-
-    virtual const std::string TypeName() const;
-
-    // Invokation method
-    const DBPluginInfoAttributes *operator()();
-
-    // Property selection methods
-    virtual void SelectAll();
-
-    void SetDBPluginAtts(DBPluginInfoAttributes* atts);
-private:
-    DBPluginInfoAttributes    dbPluginInfo;
-};
-
+#if defined(_WIN32)
+#if defined(MDSERVER_SUBJECT_PROXY_EXPORTS)||defined(mdserversubjectproxy_EXPORTS)
+#define MDSERVER_SUBJECT_PROXY_API __declspec(dllexport)
+#else
+#define MDSERVER_SUBJECT_PROXY_API __declspec(dllimport)
+#endif
+#if defined(_MSC_VER)
+// Turn off warning about lack of DLL interface
+#pragma warning(disable:4251)
+// Turn off warning non-dll class is base for dll-interface class.
+#pragma warning(disable:4275)
+// Turn off warning about identifier truncation
+#pragma warning(disable:4786)
+#endif
+#else
+# if __GNUC__ >= 4 && (defined(MDSERVER_SUBJECT_PROXY_EXPORTS) || defined(mdserversubjectproxy_EXPORTS))
+#   define MDSERVER_SUBJECT_PROXY_API __attribute__ ((visibility("default")))
+# else
+#   define MDSERVER_SUBJECT_PROXY_API __attribute__ ((visibility("default"))) /* hidden by default */
+# endif
+#endif
 
 #endif

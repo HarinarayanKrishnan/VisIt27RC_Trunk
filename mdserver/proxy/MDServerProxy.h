@@ -170,8 +170,8 @@ public:
 
     virtual std::string GetComponentName() const;
 
-    MDServerMethods    *GetMDServerMethods() { return methods; }
-    MDServerState      *GetMDServerState() { return state; }
+    virtual MDServerMethods    *GetMDServerMethods() { return methods; }
+    virtual MDServerState      *GetMDServerState() { return state; }
 
 protected:
     virtual void        SetupComponentRPCs();

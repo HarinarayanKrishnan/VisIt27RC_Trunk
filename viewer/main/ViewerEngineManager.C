@@ -4008,3 +4008,25 @@ ViewerEngineManager::LaunchProcess(const EngineKey &ek, const stringVector &args
         engine->GetEngineMethods()->LaunchProcess(args);
     ENGINE_PROXY_RPC_END
 }
+
+void
+ViewerEngineManager::SetInternalEngineProxy(const std::string &hostname, EngineProxy* e)
+{
+    std::string simName = "";
+    std::string host = hostname;
+
+    EngineKey::SetLocalHost(host);
+
+    EngineKey ek(host, simName);
+    EngineInformation info;
+    info.properties.SetNumNodes(1);
+    info.properties.SetNumProcessors(1);
+    info.properties.SetNumProcessorsUsingGPUs(0);
+    info.properties.SetDynamicLoadBalancing(false);
+    //info.properties.SetLoadBalancingScheme(const std::string &loadBalancingScheme_);
+
+    info.proxy = e;
+
+    engines.insert(std::pair<EngineKey, EngineInformation>(ek, info));
+    //engines[ek] = info;
+}

@@ -522,3 +522,10 @@ operator << (ostream &os, const GetFileListRPC::FileList &fl)
     return os;
 }
 
+
+void
+GetFileListRPC::SetFileList(FileList* f)
+{
+    fileList = *f;
+    SendReply(&fileList);
+}

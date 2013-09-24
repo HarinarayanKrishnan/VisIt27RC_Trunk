@@ -114,7 +114,8 @@ GetDBPluginInfoRPCExecutor::Update(Subject *s)
     {
         // Either send a successful reply or send an error.
         DBPluginInfoAttributes *atts = parent->GetDBPluginInfo();
-        rpc->SendReply(atts);
+        //rpc->SendReply(atts);
+        rpc->SetDBPluginAtts(atts);
         delete atts;
     }
     CATCH2(DatabaseException, dbe)

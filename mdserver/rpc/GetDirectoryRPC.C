@@ -222,3 +222,11 @@ GetDirectoryRPC::DirectoryName::TypeName() const
 {
     return "GetDirectoryRPC::DirectoryName";
 }
+
+
+void
+GetDirectoryRPC::SetDirectory(const std::string& name)
+{
+    cwd.name = name;
+    SendReply(&cwd);
+}

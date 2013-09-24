@@ -81,6 +81,7 @@ public:
     void SetFile(const std::string&);
     void SetTimeState(int ts);
     void SetTreatAllDBsAsTimeVarying(bool val);
+    void SetSILAttributes(SILAttributes* s);
 
     // Property getting methods
     std::string GetFile() const;

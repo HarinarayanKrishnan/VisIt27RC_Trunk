@@ -142,3 +142,9 @@ GetDBPluginInfoRPC::SelectAll()
 {
 }
 
+void
+GetDBPluginInfoRPC::SetDBPluginAtts(DBPluginInfoAttributes *atts)
+{
+    dbPluginInfo.CopyAttributes(atts);
+    SendReply(&dbPluginInfo);
+}

@@ -37,6 +37,7 @@ EngineMethods::EngineMethods(EngineState *_state)
     component   = 0;
     numNodes    = -1;
     state       = _state;
+    conn        = 0;
 }
 
 // ****************************************************************************
@@ -466,6 +467,9 @@ EngineMethods::Execute(bool respondWithNull, void (*waitCB)(void *), void *cbDat
         engineP->GetReadConnection(1)->NeedsRead(true);
     else if(component != NULL)
         component->GetWriteConnection(1)->NeedsRead(true);
+    else if(conn != NULL)
+        conn->NeedsRead(true);
+
     visitTimer->StopTimer(readDelay, "Delay between read notification and actual read");
 
     int readData = visitTimer->StartTimer();
@@ -477,6 +481,11 @@ EngineMethods::Execute(bool respondWithNull, void (*waitCB)(void *), void *cbDat
     else if(component != NULL)
     {
         if (component->GetWriteConnection(1)->DirectRead((unsigned char *)buf, size) < 0)
+            debug1 << "Error reading VTK data!!!!\n";
+    }
+    else if(conn != NULL)
+    {
+        if (conn->DirectRead((unsigned char *)buf, size) < 0)
             debug1 << "Error reading VTK data!!!!\n";
     }
 
@@ -722,6 +731,11 @@ EngineMethods::Render(bool sendZBuffer, const intVector& networkIDs,
     else if(component != NULL)
     {
         if (component->GetWriteConnection(1)->DirectRead((unsigned char *)buf, size) < 0)
+            debug1 << "Error reading VTK data!!!!\n";
+    }
+    else if(conn != NULL)
+    {
+        if (conn->DirectRead((unsigned char *)buf, size) < 0)
             debug1 << "Error reading VTK data!!!!\n";
     }
 

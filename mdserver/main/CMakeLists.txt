@@ -53,6 +53,10 @@
 #
 #****************************************************************************/
 
+SET(MDSERVER_EXE_SOURCES
+main.C
+)
+
 SET(MDSERVER_SOURCES
 ChangeDirectoryRPCExecutor.C
 CloseDatabaseRPCExecutor.C
@@ -70,7 +74,6 @@ MDServerApplication.C
 MDServerConnection.C
 QuitRPCExecutor.C
 SetMFileOpenOptionsRPCExecutor.C
-main.C
 )
 
 # If the mdserver is static then we need some static symbol lookup functions
@@ -105,8 +108,11 @@ ${VTK_LIBRARY_DIRS}
 ${GLEW_LIBRARY_DIR}
 ${ALL_THIRDPARTY_IO_LIBRARY_DIR}
 )
-
-ADD_EXECUTABLE(mdserver ${VISIT_APPLICATION_STYLE} ${MDSERVER_SOURCES} ${MDSERVER_STATIC_SOURCES} ${VISIT_MDSERVER_RESOURCE_FILE})
+add_definitions(-fvisibility=default)
+ADD_LIBRARY(mdserver ${MDSERVER_SOURCES} ${MDSERVER_STATIC_SOURCES})
+IF (WIN32)
+    SET_TARGET_PROPERTIES(mdserver PROPERTIES OUTPUT_NAME mdserverlib)
+ENDIF (WIN32)
 TARGET_LINK_LIBRARIES(mdserver 
     ${mdserver_MDatabase}
     ${mdserver_IDatabase}
@@ -136,4 +142,19 @@ IF(VISIT_STATIC)
     )
 ENDIF(VISIT_STATIC)
 
-VISIT_INSTALL_TARGETS(mdserver)
+ADD_EXECUTABLE(mdserver_exe ${VISIT_APPLICATION_STYLE} ${MDSERVER_SOURCES} ${MDSERVER_EXE_SOURCES} ${VISIT_MDSERVER_RESOURCE_FILE})
+SET_TARGET_PROPERTIES(mdserver_exe PROPERTIES OUTPUT_NAME mdserver)
+
+TARGET_LINK_LIBRARIES(mdserver_exe mdserver)
+
+# If we're building statically then the viewer can't be linked until the plugin
+# sources are built
+IF(VISIT_STATIC)
+    ADD_DEPENDENCIES(mdserver_exe
+        ${mdserver_MDatabase}
+        ${mdserver_IDatabase}
+    )
+ENDIF(VISIT_STATIC)
+
+
+VISIT_INSTALL_TARGETS(mdserver_exe mdserver)

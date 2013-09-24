@@ -56,7 +56,8 @@
 //-- Viewer controls..
 
 #include <ViewerSubjectProxy.h>
-
+#include <MDServerSubjectProxy.h>
+#include <ViewerFileServer.h>
 #include <vtkObject.h>
 
 QvisGUIApplicationDerived::QvisGUIApplicationDerived(int argc,char* argv[],ViewerProxy* proxy):QvisGUIApplication(argc,argv,proxy)
@@ -244,6 +245,8 @@ GUIWrapper::GUIWrapper(int& argc,char** argv)
         vtkObject::GlobalWarningDisplayOff();
 
         guiproxy = new ViewerSubjectProxy(argc,argv);
+        guiproxy->LoadLocalMDServer();
+        guiproxy->LoadLocalEngine();
         gui = new QvisGUIApplicationDerived(argc, argv,guiproxy);
 
         cliproxy = new ViewerSubjectProxy(guiproxy);

@@ -44,21 +44,22 @@
 #undef EnumTypes
 #undef Always
 
+#include <QObject>
 #include <VisItViewer.h>
 
 #include <viewersubjectproxy_exports.h>
-#include <iostream>
 #include <ViewerProxy.h>
-#include <ViewerSubject.h>
-#include <vtkQtRenderWindow.h>
 
-#include <SyncAttributes.h>
-#include <SocketConnection.h>
-#include <SILRestrictionAttributes.h>
-#include <QCloseEvent>
-#include <QList>
+#include <iostream>
 #include <cstddef>
 #include <map>
+
+class TestConnection;
+class ViewerWindow;
+class ViewerSubject;
+class vtkQtRenderWindow;
+class SyncAttributes;
+class MDServerSubjectProxy;
 
 // ****************************************************************************
 // Class: ViewerSubjectProxy
@@ -81,46 +82,6 @@ class VIEWER_SUBJECT_PROXY_API ViewerSubjectProxy : public QObject, public Viewe
 {
     Q_OBJECT
 
-    class TestConnection : public Connection
-    {
-    public:
-        TestConnection(){}
-        virtual ~TestConnection(){}
-        virtual int  Fill(){ return 0; }
-        virtual void Flush(){}
-        virtual long Size(){ return 0; }
-        virtual void Write(unsigned char value) {}
-        virtual void Read(unsigned char *address) {}
-        virtual void Append(const unsigned char *buf, int count){}
-        virtual long DirectRead(unsigned char *buf, long len){ return 0; }
-        virtual long DirectWrite(const unsigned char *buf, long len) {return 0;}
-        virtual int GetDescriptor(){ return -1; }
-        virtual bool NeedsRead(bool blocking = false) const;
-    };
-
-    class NonClosableQtRenderWindow : public vtkQtRenderWindow
-    {
-
-    public:
-        virtual ~NonClosableQtRenderWindow(){}
-        virtual void closeEvent(QCloseEvent * event)
-        {
-
-            if(ViewerSubjectProxy::viswindows.size() > 1)
-            {
-                vtkQtRenderWindow::closeEvent(event);
-            }
-            else
-            {
-                std::cerr << "Not allowed to close the last Viewer window" << std::endl;
-                event->ignore();
-            }
-        }
-    };
-
-    static std::map<int,vtkQtRenderWindow*> viswindows;
-    //static std::vector<vtkQtRenderWindow*> viswindows;
-
     bool initialize;
     ViewerSubject* vissubject;
     ViewerState* gstate;
@@ -131,29 +92,14 @@ class VIEWER_SUBJECT_PROXY_API ViewerSubjectProxy : public QObject, public Viewe
     // Used to store the sil restriction in avt format.
     avtSILRestriction_p        internalSILRestriction;
     ViewerSubjectProxy*        m_proxy;
-
+    MDServerSubjectProxy*      m_mdserver_proxy;
     std::string host;
     TestConnection* testconn;
 
-
-    virtual void
-    ProcessInput()
-    {
-        //Todo: make this connect to define in visitModule
-        static int mx = 1000;
-
-        SyncAttributes* a = GetViewerState()->GetSyncAttributes();
-        if(a->GetSyncTag() < 0) //a sync tag of -1 means that the cli is waiting..
-        {
-            mx++;
-            a->SetSyncTag(mx);
-            a->Notify();
-        }
-    }
-
+    virtual void ProcessInput();
     //override with fake connection ..
-    virtual Connection *GetReadConnection() const { return testconn; }
-    virtual Connection *GetWriteConnection() const { return testconn; }
+    virtual Connection *GetReadConnection() const;
+    virtual Connection *GetWriteConnection() const;
     virtual const std::string &GetLocalHostName() const { return host; }
     virtual const std::string &GetLocalUserName() const { return host; }
     virtual void AddArgument(const std::string &arg) {}
@@ -187,6 +133,10 @@ class VIEWER_SUBJECT_PROXY_API ViewerSubjectProxy : public QObject, public Viewe
     QList<int> GetRenderWindowIDs();
 
     bool eventFilter(QObject *, QEvent *);
+
+    /// provide option to load other services internally..
+    void LoadLocalMDServer();
+    void LoadLocalEngine();
 public slots:
     void windowDeleted(QObject*);
     void viewerWindowCreated(ViewerWindow*);

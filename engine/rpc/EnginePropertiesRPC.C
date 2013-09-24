@@ -53,3 +53,10 @@
 EnginePropertiesRPC::EnginePropertiesRPC() : NonBlockingRPC("a", &returnAtts)
 {
 }
+
+void
+EnginePropertiesRPC::SetEngineProperties(EngineProperties atts)
+{
+    returnAtts.CopyAttributes(&atts);
+    SendReply(&returnAtts);
+}

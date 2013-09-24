@@ -36,47 +36,42 @@
 *
 *****************************************************************************/
 
-#ifndef _GETDB_PLUGIN_INFO_RPC_H_
-#define _GETDB_PLUGIN_INFO_RPC_H_
-#include <mdsrpc_exports.h>
+#ifndef ENGINESUBJECTPROXY_H
+#define ENGINESUBJECTPROXY_H
 
-#include <VisItRPC.h>
-#include <vector>
-#include <string>
-#include <DBPluginInfoAttributes.h>
+#include <enginesubjectproxy_exports.h>
+#include <EngineProxy.h>
+
+struct PrivateData;
 
 // ****************************************************************************
-// Class: GetDBPluginInfoRPC
+// Class: EngineSubjectProxy
 //
 // Purpose:
-//   This class encapsulates a call to get the DBPluginInfo for a database
-//   from a remote file system.
+//   Control EngineSubject via a EngineProxy style interface.
 //
 // Notes:      
 //
-// Programmer: Hank Childs
-// Creation:   May 23, 2005
+// Programmer: Hari Krishnan
+// Creation:   Wed May 16 09:34:25 PDT 2012
+//
+// Modifications:
 //
 // ****************************************************************************
 
-class MDSERVER_RPC_API GetDBPluginInfoRPC : public BlockingRPC
+class ENGINE_SUBJECT_PROXY_API EngineSubjectProxy : public EngineProxy
 {
 public:
-    GetDBPluginInfoRPC();
-    virtual ~GetDBPluginInfoRPC();
+    EngineSubjectProxy();
+    virtual ~EngineSubjectProxy();
 
-    virtual const std::string TypeName() const;
+    virtual EngineMethods    *GetEngineMethods();
+    virtual EngineState      *GetEngineState();
 
-    // Invokation method
-    const DBPluginInfoAttributes *operator()();
-
-    // Property selection methods
-    virtual void SelectAll();
-
-    void SetDBPluginAtts(DBPluginInfoAttributes* atts);
+    void LoadEngineProxy();
+    virtual void SendKeepAlive() {}
 private:
-    DBPluginInfoAttributes    dbPluginInfo;
+    PrivateData* data;
 };
-
 
 #endif

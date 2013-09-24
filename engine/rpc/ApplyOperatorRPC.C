@@ -326,8 +326,6 @@ ApplyOperatorRPC::operator()(const string &n, const AttributeSubject *a)
         return;
     }
 
-    if (a)
-        Select(0, (void*)a);
-
+    SetAtts(a->NewInstance(true));
     Execute();
 }

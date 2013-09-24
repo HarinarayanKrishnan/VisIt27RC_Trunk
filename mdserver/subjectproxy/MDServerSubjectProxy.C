@@ -36,47 +36,61 @@
 *
 *****************************************************************************/
 
-#ifndef _GETDB_PLUGIN_INFO_RPC_H_
-#define _GETDB_PLUGIN_INFO_RPC_H_
-#include <mdsrpc_exports.h>
+#include <iostream>
+#include <MDServerProxy.h>
+#include <MDServerConnection.h>
+#include <MDServerSubjectProxy.h>
+#include <VisItInit.h>
+#include <RuntimeSetting.h>
+#include <MDServerApplication.h>
+#include <MDServerManager.h>
 
-#include <VisItRPC.h>
-#include <vector>
-#include <string>
-#include <DBPluginInfoAttributes.h>
-
-// ****************************************************************************
-// Class: GetDBPluginInfoRPC
-//
-// Purpose:
-//   This class encapsulates a call to get the DBPluginInfo for a database
-//   from a remote file system.
-//
-// Notes:      
-//
-// Programmer: Hank Childs
-// Creation:   May 23, 2005
-//
-// ****************************************************************************
-
-class MDSERVER_RPC_API GetDBPluginInfoRPC : public BlockingRPC
+struct PrivateData
 {
-public:
-    GetDBPluginInfoRPC();
-    virtual ~GetDBPluginInfoRPC();
-
-    virtual const std::string TypeName() const;
-
-    // Invokation method
-    const DBPluginInfoAttributes *operator()();
-
-    // Property selection methods
-    virtual void SelectAll();
-
-    void SetDBPluginAtts(DBPluginInfoAttributes* atts);
-private:
-    DBPluginInfoAttributes    dbPluginInfo;
+    MDServerState* state;
+    MDServerMethods* methods;
+    MDServerConnection* conn;
 };
 
+MDServerSubjectProxy::MDServerSubjectProxy()
+{
+    data = new PrivateData();
+    data->state = new MDServerState();
+    data->methods = new MDServerMethods(data->state);
+    data->conn = new MDServerConnection(MDServerApplication::Instance(), data->state);
+    MDServerApplication::Instance()->InitializePlugins();
+    MDServerApplication::Instance()->LoadPlugins();
+}
 
-#endif
+MDServerSubjectProxy::~MDServerSubjectProxy()
+{
+    delete data->conn;
+    delete data;
+}
+
+void
+MDServerSubjectProxy::LoadMDServerProxy()
+{
+    MDServerManager::ServerMap& smp = MDServerManager::Instance()->GetServerMap();
+    if(smp.count("localhost") > 0) return;
+
+    MDServerManager::ServerInfo* info = new MDServerManager::ServerInfo();
+    info->path = this->GetMDServerMethods()->GetDirectory();
+    info->arguments = stringVector();
+    info->server = this;
+
+    smp["localhost"] = info;
+}
+
+MDServerState*
+MDServerSubjectProxy::GetMDServerState()
+{
+    return data->state;
+}
+
+MDServerMethods*
+MDServerSubjectProxy::GetMDServerMethods()
+{
+    return data->methods;
+}
+

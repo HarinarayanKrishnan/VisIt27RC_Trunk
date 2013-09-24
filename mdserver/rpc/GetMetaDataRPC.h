@@ -106,7 +106,7 @@ public:
     void SetCreateMeshQualityExpressions(bool set);
     void SetCreateTimeDerivativeExpressions(bool set);
     void SetCreateVectorMagnitudeExpressions(bool set);
-    
+    void SetMetaData(avtDatabaseMetaData* meta);
 
     // Property getting methods
     std::string GetFile() const;

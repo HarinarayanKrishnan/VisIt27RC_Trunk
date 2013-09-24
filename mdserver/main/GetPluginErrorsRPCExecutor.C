@@ -102,7 +102,8 @@ void
 GetPluginErrorsRPCExecutor::Update(Subject *s)
 {
     GetPluginErrorsRPC *rpc = (GetPluginErrorsRPC *)s;
-    GetPluginErrorsRPC::PluginErrors err;
-    err.errorString = parent->GetPluginErrors();
-    rpc->SendReply(&err);
+//    GetPluginErrorsRPC::PluginErrors err;
+//    err.errorString = parent->GetPluginErrors();
+//    rpc->SendReply(&err);
+    rpc->SetPluginError(parent->GetPluginErrors());
 }

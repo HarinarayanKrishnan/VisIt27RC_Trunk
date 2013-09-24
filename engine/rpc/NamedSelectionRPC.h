@@ -104,6 +104,7 @@ public:
     void SetSelectionProperties(const SelectionProperties &p);
     void SetAllowCache(bool);
 
+    void SetSelectionSummary(SelectionSummary& summary);
     // Property getting methods
     int                             GetPlotID(void) const { return plotId; }
     const std::string              &GetSelectionName(void) const { return selName; }

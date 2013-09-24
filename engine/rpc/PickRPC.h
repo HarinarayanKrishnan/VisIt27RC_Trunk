@@ -82,7 +82,7 @@ class ENGINE_RPC_API PickRPC : public BlockingRPC
     PickAttributes *GetPickAtts() ;
     int GetNetId();
     int GetWinId() const;
-   
+
     PickAttributes returnAtts;
 private:
     PickAttributes pickAtts;

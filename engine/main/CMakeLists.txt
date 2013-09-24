@@ -145,7 +145,7 @@ ${TCMALLOC_LIBRARY_DIR}
 ${ALL_THIRDPARTY_IO_LIBRARY_DIR}
 )
 
-
+add_definitions(-fvisibility=default)
 #********************************* SERIAL ************************************
 ADD_LIBRARY(engine_ser ${LIBENGINE_SOURCES})
 IF (WIN32)
