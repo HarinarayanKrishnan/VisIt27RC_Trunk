@@ -51,7 +51,7 @@
 #include <QListWidget>
 #include <QSplitter>
 #include <QWidget>
-
+#include <WindowMetrics.h>
 #include <QvisFileWindowBase.h>
 #include <QvisRecentPathRemovalWindow.h>
 #include <FileServerList.h>
@@ -339,7 +339,8 @@ QvisFileWindowBase::ProgressCallback(void *data, int stage)
     }
     else if(stage == 1)
     {
-        qApp->processEvents();
+        if(!WindowMetrics::EmbeddedWindowState())
+            qApp->processEvents();
     }
     else
     {

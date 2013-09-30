@@ -8169,7 +8169,8 @@ ViewerSubject::LaunchProgressCB(void *d, int stage)
     {
         if (windowsShowing)
         {
-            qApp->processEvents(QEventLoop::AllEvents, 50);
+            if(!WindowMetrics::EmbeddedWindowState())
+                qApp->processEvents(QEventLoop::AllEvents, 50);
             retval = !dialog->getCancelled();
         }
     }
